@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English 5 Speaking</title>
+
+<style>
+body{
+  font-family:"Comic Sans MS",Arial,sans-serif;
+  background:linear-gradient(135deg,#dbeeff,#ffffff);
+  margin:0;padding:14px
+}
+.container{
+  max-width:1000px;margin:auto;
+  background:#fff;padding:22px;
+  border-radius:26px;
+  box-shadow:0 12px 30px rgba(0,0,0,.25)
+}
+h1,h2{text-align:center;color:#0d47a1}
+.card{
+  background:#f5fbff;
+  padding:18px;margin-top:18px;
+  border-radius:22px;
+  border:3px dashed #90caf9
+}
+input,select,textarea{
+  width:100%;padding:12px;
+  border-radius:14px;
+  border:2px solid #bbdefb;
+  margin-top:8px;font-size:16px
+}
+button{
+  width:100%;padding:14px;margin-top:10px;
+  background:#1565c0;color:white;
+  border:none;border-radius:22px;
+  font-size:17px
+}
+button.recording{background:#d32f2f}
+.word{
+  display:inline-block;
+  padding:6px 10px;
+  margin:4px;
+  border-radius:14px;
+  cursor:pointer
+}
+.correct{background:#c8e6c9;color:#1b5e20}
+.wrong{background:#ffccbc;color:#bf360c}
+.star{text-align:center;font-size:36px;margin-top:10px}
+.certificate{
+  display:none;
+  margin-top:40px;
+  padding:50px;
+  border-radius:30px;
+  background:linear-gradient(135deg,#fffde7,#fff);
+  border:8px double #fbc02d;
+  text-align:center
+}
+.cert-title{font-size:32px;color:#0d47a1}
+.cert-name{font-size:30px;font-weight:bold;margin:20px 0}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎤 English 5 Speaking</h1>
+<h2>Speaking by Unit & Free Speaking</h2>
+
+<div class="card">
+  <input id="studentName" placeholder="Student name">
+  <input id="studentClass" placeholder="Class (5/3)">
+</div>
+
+<div class="card">
+  <select id="mode">
+    <option value="unit">Speaking by Unit</option>
+    <option value="free">Free Speaking</option>
+  </select>
+</div>
+
+<div class="card" id="unitBox">
+  <select id="unit"></select>
+  <p id="sampleText"></p>
+  <button onclick="speak(sampleText.innerText)">🔊 Listen model</button>
+</div>
+
+<div class="card">
+  <textarea id="studentText" rows="4"
+  placeholder="Tap the microphone and speak..."></textarea>
+  <button id="recordBtn">🎙 Tap to speak</button>
+</div>
+
+<div class="card">
+  <h3>🤖 AI Feedback</h3>
+  <div id="feedback"></div>
+  <div class="star" id="starBox"></div>
+</div>
+
+<div class="certificate" id="certificate">
+  <div class="cert-title">CERTIFICATE OF ENGLISH SPEAKING</div>
+  <p>This certificate is proudly presented to</p>
+  <div class="cert-name" id="cName"></div>
+  <p id="cClass"></p>
+  <p id="cMode"></p>
+  <div class="star" id="cStar"></div>
+</div>
+
+</div>
+
+<audio id="clap" src="https://www.soundjay.com/human/applause-8.mp3"></audio>
+
+<script>
+/* ===== TEXT TO SPEECH ===== */
+function speak(text){
+  if(!text) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-GB";u.rate=0.85;
+  speechSynthesis.speak(u);
+}
+
+/* ===== UNITS – FULL 2 LESSONS ===== */
+const units={
+1:"I’m Hoang. I’m in class 5/3. I live in the countryside. My favourite colour is yellow. My favourite animal is a dolphin. My favourite food is a sandwich. My favourite sport is table tennis.",
+2:"I live in this house. My address is 65 Le Loi Street. It is near my school.",
+3:"He is from Australia. He is friendly and helpful.",
+4:"I like going for a walk and riding my bike. At the weekend, I read books.",
+5:"I’d like to be a teacher because I’d like to teach children.",
+6:"Go upstairs, go past the library and turn right. The computer room is on the second floor.",
+7:"She likes doing projects because she thinks it is interesting.",
+8:"The crayons are on the table. The pen is Huong’s.",
+9:"We were at the campsite last week. We danced around the campfire.",
+10:"They went to Ba Na Hills. They visited the old buildings.",
+11:"I swam and took photos. We took a boat trip and ate seafood.",
+12:"I will decorate the house and visit my grandparents at Tet.",
+13:"We will sing and have a party on Children’s Day.",
+14:"He eats healthy food and exercises every day.",
+15:"I have a sore throat. I should drink warm water.",
+16:"It is hot in summer. I wear a T-shirt.",
+17:"The story is about the fox and the crow.",
+18:"I want to visit Dragon Bridge. I can get there by bus.",
+19:"I think Hoi An Old Town is beautiful. It is about 29 kilometres away.",
+20:"I am going to visit Phu Quoc Island. I am going to swim and relax."
+};
+
+const unitSel=document.getElementById("unit");
+for(let i=1;i<=20;i++){
+  unitSel.innerHTML+=`<option value="${i}">Unit ${i}</option>`;
+}
+unitSel.onchange=()=>sampleText.innerText=units[unitSel.value];
+sampleText.innerText=units[1];
+
+/* ===== RECORD (MOBILE SAFE) ===== */
+let recognition;
+document.getElementById("recordBtn").addEventListener("click",()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Speech Recognition not supported");return;}
+  recognition=new SR();
+  recognition.lang="en-GB";
+  recognition.start();
+  recordBtn.classList.add("recording");
+  recordBtn.innerText="🎙 Listening...";
+  recognition.onresult=e=>{
+    const said=e.results[0][0].transcript.toLowerCase();
+    studentText.value=said;
+    processSpeech(said);
+    recognition.stop();
+    recordBtn.classList.remove("recording");
+    recordBtn.innerText="🎙 Tap to speak";
+  };
+});
+
+/* ===== PROCESS SPEECH ===== */
+function processSpeech(said){
+  const model=(mode.value==="unit"?sampleText.innerText:said)
+    .toLowerCase().replace(/[.,]/g,"").split(" ");
+  const spoken=said.replace(/[.,]/g,"").split(" ");
+
+  feedback.innerHTML="";
+  let wrongCount=0;
+
+  model.forEach(w=>{
+    const span=document.createElement("span");
+    span.className="word "+(spoken.includes(w)?"correct":"wrong");
+    if(!spoken.includes(w)) wrongCount++;
+    span.innerText=w;
+    span.onclick=()=>speak(w);
+    feedback.appendChild(span);
+  });
+
+  let stars=wrongCount===0?5:wrongCount<=2?4:wrongCount<=4?3:wrongCount<=6?2:1;
+  starBox.innerText="⭐".repeat(stars);
+  clap.play();
+  showCert(stars);
+}
+
+/* ===== CERT ===== */
+function showCert(stars){
+  certificate.style.display="block";
+  cName.innerText=studentName.value;
+  cClass.innerText="Class: "+studentClass.value;
+  cMode.innerText=mode.value==="unit"?"Speaking by Unit":"Free Speaking";
+  cStar.innerText="⭐".repeat(stars);
+}
+</script>
+</body>
+</html>
